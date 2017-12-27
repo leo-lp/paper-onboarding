@@ -19,18 +19,19 @@ class PageContrainer: UIView {
   fileprivate let itemsCount: Int
   fileprivate let animationKey = "animationKey"
   
-  init(radius: CGFloat, selectedRadius: CGFloat, space: CGFloat, itemsCount: Int) {
+  init(radius: CGFloat, selectedRadius: CGFloat, space: CGFloat, itemsCount: Int, itemColor: (Int) -> UIColor) {
     self.itemsCount         = itemsCount
     self.space              = space
     self.itemRadius         = radius
     self.selectedItemRadius = selectedRadius
     super.init(frame: CGRect.zero)
-    items = createItems(itemsCount, radius: radius, selectedRadius: selectedRadius)
+    items = createItems(itemsCount, radius: radius, selectedRadius: selectedRadius, itemColor: itemColor)
   }
   
   required init?(coder aDecoder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
 }
 
 // MARK: public
@@ -73,24 +74,28 @@ extension PageContrainer {
 
 extension PageContrainer {
   
-  fileprivate func createItems(_ count: Int, radius: CGFloat, selectedRadius: CGFloat) -> [PageViewItem] {
+  fileprivate func createItems(_ count: Int, radius: CGFloat, selectedRadius: CGFloat, itemColor: (Int) -> UIColor) -> [PageViewItem] {
     var items = [PageViewItem]()
-    // create first item 
-    var item = createItem(radius, selectedRadius: selectedRadius, isSelect: true)
+    // create first item
+    var tag = 1
+    var item = createItem(radius, selectedRadius: selectedRadius, isSelect: true, itemColor: itemColor(tag - 1))
+    item.tag = tag
     addConstraintsToView(item, radius: selectedRadius)
     items.append(item)
     
     for _ in 1..<count {
-      let nextItem = createItem(radius, selectedRadius: selectedRadius)
+      tag += 1
+      let nextItem = createItem(radius, selectedRadius: selectedRadius, itemColor: itemColor(tag - 1))
       addConstraintsToView(nextItem, leftItem: item, radius: radius)
       items.append(nextItem)
       item = nextItem
+      item.tag = tag
     }
     return items
   }
   
-  fileprivate func createItem(_ radius: CGFloat, selectedRadius: CGFloat, isSelect: Bool = false) -> PageViewItem {
-    let item = Init(PageViewItem(radius: radius, selectedRadius: selectedRadius, isSelect: isSelect)) {
+  fileprivate func createItem(_ radius: CGFloat, selectedRadius: CGFloat, isSelect: Bool = false, itemColor: UIColor) -> PageViewItem {
+    let item = Init(PageViewItem(radius: radius, itemColor: itemColor, selectedRadius: selectedRadius, isSelect: isSelect)) {
       $0.translatesAutoresizingMaskIntoConstraints = false
       $0.backgroundColor                           = .clear
     }
